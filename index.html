@@ -1,183 +1,212 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VelTrain</title>
-<script src="https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js"></script>
+<script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;700&display=swap');
 :root {
   --bg:#080808; --surf:#101010; --brd:#1e1e1e;
   --txt:#e8e8e8; --mut:#555; --acc:#c8ff00;
   --red:#ff3c3c; --ora:#ff9500; --glow:rgba(200,255,0,.15);
-  --fb:20px; --fbtn:11px; --ftog:11px; --ftag:10px;
-  --funit:16px; --fsk:9px; --fsv:11px;
-  --ph:8px 14px; --ps:6px 12px; --pb:6px 10px;
-  --sh:24px; --ds:7px; --ch:110px;
+
+–fb:20px; –fbtn:11px; –ftog:11px; –ftag:10px;
+–funit:16px; –fsk:9px; –fsv:11px;
+–ph:8px 14px; –ps:6px 12px; –pb:6px 10px;
+–sh:24px; –ds:7px; –ch:110px;
 }
 @media(min-width:768px){
-  :root{
-    --fb:38px; --fbtn:14px; --ftog:14px; --ftag:14px;
-    --funit:28px; --fsk:12px; --fsv:16px;
-    --ph:14px 24px; --ps:10px 20px; --pb:8px 16px;
-    --sh:36px; --ds:10px; --ch:160px;
-  }
+:root{
+–fb:38px; –fbtn:14px; –ftog:14px; –ftag:14px;
+–funit:28px; –fsk:12px; –fsv:16px;
+–ph:14px 24px; –ps:10px 20px; –pb:8px 16px;
+–sh:36px; –ds:10px; –ch:160px;
+}
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
-  background:var(--bg);color:var(--txt);
-  font-family:'JetBrains Mono',monospace;
-  height:100dvh;
-  display:grid;grid-template-rows:auto 1fr auto auto;
-  overflow:hidden;user-select:none;
+background:var(–bg);color:var(–txt);
+font-family:‘JetBrains Mono’,monospace;
+height:100dvh;
+display:grid;grid-template-rows:auto 1fr auto auto;
+overflow:hidden;user-select:none;
 }
+/* HEADER */
 header{
-  display:flex;align-items:center;gap:10px;
-  padding:var(--ph);background:var(--surf);
-  border-bottom:1px solid var(--brd);flex-wrap:wrap;
+display:flex;align-items:center;gap:10px;
+padding:var(–ph);background:var(–surf);
+border-bottom:1px solid var(–brd);flex-wrap:wrap;
 }
-.brand{font-family:'Bebas Neue',sans-serif;font-size:var(--fb);letter-spacing:4px;color:var(--acc);text-shadow:0 0 20px var(--glow);flex-shrink:0;}
-.sep{width:1px;height:var(--sh);background:var(--brd);flex-shrink:0;}
-.dot{width:var(--ds);height:var(--ds);border-radius:50%;background:var(--mut);transition:background .3s,box-shadow .3s;flex-shrink:0;}
-.dot.on{background:var(--acc);box-shadow:0 0 8px var(--glow);}
-.dot.err{background:var(--red);}
-.dot.mir{background:var(--ora);box-shadow:0 0 8px rgba(255,149,0,.4);}
+.brand{font-family:‘Bebas Neue’,sans-serif;font-size:var(–fb);letter-spacing:4px;color:var(–acc);text-shadow:0 0 20px var(–glow);flex-shrink:0;}
+.sep{width:1px;height:var(–sh);background:var(–brd);flex-shrink:0;}
+.dot{width:var(–ds);height:var(–ds);border-radius:50%;background:var(–mut);transition:background .3s,box-shadow .3s;flex-shrink:0;}
+.dot.on {background:var(–acc);box-shadow:0 0 8px var(–glow);}
+.dot.err{background:var(–red);}
+.dot.mir{background:var(–ora);box-shadow:0 0 8px rgba(255,149,0,.4);}
 button{
-  font-family:'JetBrains Mono',monospace;font-size:var(--fbtn);font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;padding:var(--pb);
-  border:1px solid var(--brd);border-radius:2px;
-  background:transparent;color:var(--txt);cursor:pointer;transition:all .15s;flex-shrink:0;
+font-family:‘JetBrains Mono’,monospace;font-size:var(–fbtn);font-weight:700;
+letter-spacing:1px;text-transform:uppercase;padding:var(–pb);
+border:1px solid var(–brd);border-radius:2px;
+background:transparent;color:var(–txt);cursor:pointer;transition:all .15s;flex-shrink:0;
 }
-button:hover{border-color:var(--acc);color:var(--acc);}
-button.live{border-color:var(--red);color:var(--red);}
-button.mir-on{border-color:var(--ora);color:var(--ora);}
-button:disabled{opacity:.35;pointer-events:none;color:var(--txt);}
-.tgroup{display:flex;border:1px solid var(--brd);border-radius:2px;overflow:hidden;flex-shrink:0;}
+button:hover  {border-color:var(–acc);color:var(–acc);}
+button.live   {border-color:var(–red);color:var(–red);}
+button.mir-on {border-color:var(–ora);color:var(–ora);}
+button:disabled{opacity:.35;pointer-events:none;color:var(–txt);}
+.tgroup{display:flex;border:1px solid var(–brd);border-radius:2px;overflow:hidden;flex-shrink:0;}
 .tog{
-  font-family:'JetBrains Mono',monospace;font-size:var(--ftog);font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;padding:var(--pb);
-  cursor:pointer;color:var(--txt);border:none;background:transparent;transition:all .15s;
+font-family:‘JetBrains Mono’,monospace;font-size:var(–ftog);font-weight:700;
+letter-spacing:1px;text-transform:uppercase;padding:var(–pb);
+cursor:pointer;color:var(–txt);border:none;background:transparent;transition:all .15s;
 }
-.tog+.tog{border-left:1px solid var(--brd);}
-.tog:hover{color:var(--acc);}
-.tog.sel{background:var(--acc);color:#000;}
+.tog+.tog{border-left:1px solid var(–brd);}
+.tog:hover{color:var(–acc);}
+.tog.sel{background:var(–acc);color:#000;}
 .tog:disabled{opacity:.35;pointer-events:none;}
 .vbadge{
-  display:none;font-size:var(--fsk);font-weight:700;letter-spacing:2px;
-  padding:4px 10px;border-radius:2px;
-  background:rgba(255,149,0,.12);border:1px solid var(--ora);
-  color:var(--ora);text-transform:uppercase;flex-shrink:0;
+display:none;font-size:var(–fsk);font-weight:700;letter-spacing:2px;
+padding:4px 10px;border-radius:2px;
+background:rgba(255,149,0,.12);border:1px solid var(–ora);
+color:var(–ora);text-transform:uppercase;flex-shrink:0;
 }
 .vbadge.show{display:block;}
 .mir-row{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .ctrl-row{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}
 @media(max-width:767px){.mir-row{margin-left:auto;}.ctrl-row{margin-left:0;}}
-main{display:grid;gap:1px;background:var(--brd);overflow:hidden;grid-template-columns:1fr 1fr;}
+
+/* MAIN — PC: 좌우 2칸 / 모바일: 세로 단일 컬럼 (peak 크게, current 작게) */
+main{display:grid;gap:1px;background:var(–brd);overflow:hidden;
+grid-template-columns:1fr 1fr;   /* PC 기본 */
+}
 @media(max-width:767px){
-  main{grid-template-columns:1fr;grid-template-rows:1fr auto;}
-  .panel:not(.curr) .vel-num{font-size:clamp(96px,28vw,200px);}
-  .panel.curr{flex-direction:row;justify-content:center;align-items:center;gap:12px;padding:10px 20px;flex:0 0 auto;}
-  .panel.curr .vel-tag{margin-bottom:0;font-size:9px;}
-  .panel.curr .vel-num{font-size:clamp(32px,9vw,52px);min-width:auto;}
-  .panel.curr .vel-unit{margin-top:0;font-size:13px;}
+main{ grid-template-columns:1fr; grid-template-rows:1fr auto; }
+/* 모바일 peak: 숫자 크게 */
+.panel:not(.curr) .vel-num { font-size:clamp(96px,28vw,200px); }
+/* 모바일 current: 가로 한 줄, 작게 */
+.panel.curr{ flex-direction:row; justify-content:center; align-items:center;
+gap:12px; padding:10px 20px; flex:0 0 auto; }
+.panel.curr .vel-tag{ margin-bottom:0; font-size:9px; }
+.panel.curr .vel-num{ font-size:clamp(32px,9vw,52px); min-width:auto; }
+.panel.curr .vel-unit{ margin-top:0; font-size:13px; }
 }
 .panel{
-  background:var(--bg);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:20px;position:relative;overflow:hidden;
+background:var(–bg);display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+padding:20px;position:relative;overflow:hidden;
 }
 .panel::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at center,rgba(200,255,0,.03) 0%,transparent 70%);
-  pointer-events:none;
+content:’’;position:absolute;inset:0;
+background:radial-gradient(ellipse at center,rgba(200,255,0,.03) 0%,transparent 70%);
+pointer-events:none;
 }
-.vel-tag{font-size:var(--ftag);font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--mut);margin-bottom:10px;}
+.vel-tag{font-size:var(–ftag);font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(–mut);margin-bottom:10px;}
 .vel-num{
-  font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,190px);
-  line-height:.9;letter-spacing:2px;color:var(--txt);transition:color .08s;
-  font-variant-numeric:tabular-nums;min-width:4ch;text-align:right;
+font-family:‘Bebas Neue’,sans-serif;font-size:clamp(56px,12vw,190px);
+line-height:.9;letter-spacing:2px;color:var(–txt);transition:color .08s;
+font-variant-numeric:tabular-nums;min-width:4ch;text-align:right;
 }
-.vel-num.peak{color:var(--acc);text-shadow:0 0 40px rgba(200,255,0,.3);}
-.vel-unit{font-size:var(--funit);font-weight:300;color:var(--mut);margin-top:6px;letter-spacing:2px;}
+.vel-num.peak{color:var(–acc);text-shadow:0 0 40px rgba(200,255,0,.3);}
+.vel-unit{font-size:var(–funit);font-weight:300;color:var(–mut);margin-top:6px;letter-spacing:2px;}
 @keyframes peakFlash{0%{opacity:1;transform:scale(1)}20%{opacity:.7;transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
 .flash{animation:peakFlash .35s ease;}
 .cand-bar{
-  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
-  font-size:9px;letter-spacing:2px;color:var(--ora);
-  opacity:0;transition:opacity .2s;text-transform:uppercase;white-space:nowrap;
+position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+font-size:9px;letter-spacing:2px;color:var(–ora);
+opacity:0;transition:opacity .2s;text-transform:uppercase;white-space:nowrap;
 }
 .cand-bar.on{opacity:1;}
-footer{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surf);border-top:1px solid var(--brd);}
-.stat{padding:var(--ps);border-right:1px solid var(--brd);}
+
+/* FOOTER */
+footer{display:grid;grid-template-columns:repeat(4,1fr);background:var(–surf);border-top:1px solid var(–brd);}
+.stat{padding:var(–ps);border-right:1px solid var(–brd);}
 .stat:last-child{border-right:none;}
-.skey{color:var(--mut);text-transform:uppercase;font-size:var(--fsk);letter-spacing:1px;margin-bottom:2px;}
-.sval{color:var(--txt);font-size:var(--fsv);}
-#chartWrap{background:var(--bg);border-top:1px solid var(--brd);height:var(--ch);position:relative;overflow:hidden;}
+.skey{color:var(–mut);text-transform:uppercase;font-size:var(–fsk);letter-spacing:1px;margin-bottom:2px;}
+.sval{color:var(–txt);font-size:var(–fsv);}
+
+/* CHART */
+#chartWrap{
+background:var(–bg);border-top:1px solid var(–brd);
+height:var(–ch);position:relative;overflow:hidden;
+}
 #repChart{display:block;width:100%;height:100%;}
 #chartEmpty{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:var(--fsk);letter-spacing:3px;color:var(--mut);text-transform:uppercase;pointer-events:none;
+position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+font-size:var(–fsk);letter-spacing:3px;color:var(–mut);text-transform:uppercase;
+pointer-events:none;
 }
+
+/* MODAL */
 .overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
-  align-items:center;justify-content:center;z-index:200;padding:16px;
+display:none;position:fixed;inset:0;
+background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
+align-items:center;justify-content:center;z-index:200;padding:16px;
 }
 .overlay.show{display:flex;}
-.mbox{background:var(--surf);border:1px solid var(--brd);padding:24px 28px;width:min(360px,100%);position:relative;}
-.mtitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:4px;color:var(--acc);margin-bottom:18px;}
-.mtabs{display:flex;border:1px solid var(--brd);border-radius:2px;overflow:hidden;margin-bottom:18px;}
+.mbox{background:var(–surf);border:1px solid var(–brd);padding:24px 28px;width:min(360px,100%);position:relative;}
+.mtitle{font-family:‘Bebas Neue’,sans-serif;font-size:26px;letter-spacing:4px;color:var(–acc);margin-bottom:18px;}
+.mtabs{display:flex;border:1px solid var(–brd);border-radius:2px;overflow:hidden;margin-bottom:18px;}
 .mtab{
-  flex:1;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
-  letter-spacing:2px;text-transform:uppercase;padding:9px;
-  border:none;background:transparent;color:var(--txt);cursor:pointer;transition:all .15s;
+flex:1;font-family:‘JetBrains Mono’,monospace;font-size:12px;font-weight:700;
+letter-spacing:2px;text-transform:uppercase;padding:9px;
+border:none;background:transparent;color:var(–txt);cursor:pointer;transition:all .15s;
 }
-.mtab+.mtab{border-left:1px solid var(--brd);}
-.mtab.sel{background:var(--acc);color:#000;}
+.mtab+.mtab{border-left:1px solid var(–brd);}
+.mtab.sel{background:var(–acc);color:#000;}
 .tpanel{display:none;}.tpanel.on{display:block;}
 .mdesc{font-size:12px;line-height:1.9;color:#777;margin-bottom:16px;}
 .mbtn{
-  width:100%;padding:10px;margin-bottom:12px;font-size:13px;letter-spacing:2px;
-  border:1px solid var(--brd);background:transparent;color:var(--txt);
-  cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:700;text-transform:uppercase;transition:all .15s;
+width:100%;padding:10px;margin-bottom:12px;font-size:13px;letter-spacing:2px;
+border:1px solid var(–brd);background:transparent;color:var(–txt);
+cursor:pointer;font-family:‘JetBrains Mono’,monospace;font-weight:700;text-transform:uppercase;transition:all .15s;
 }
-.mbtn:hover{border-color:var(--acc);color:var(--acc);}
+.mbtn:hover{border-color:var(–acc);color:var(–acc);}
 .codedisp{
-  font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:16px;
-  color:var(--acc);text-align:center;text-shadow:0 0 30px var(--glow);
-  margin:8px 0 4px;min-height:80px;line-height:1;word-break:break-all;
+font-family:‘Bebas Neue’,sans-serif;font-size:72px;letter-spacing:16px;
+color:var(–acc);text-align:center;text-shadow:0 0 30px var(–glow);
+margin:8px 0 4px;min-height:80px;line-height:1;word-break:break-all;
 }
-.mhint{font-size:11px;letter-spacing:1px;color:var(--mut);text-align:center;min-height:18px;margin-top:4px;}
-.mhint.ok{color:var(--acc);}
-.mhint.err{color:var(--red);}
-.mhint.warn{color:var(--ora);}
+.mhint{font-size:11px;letter-spacing:1px;color:var(–mut);text-align:center;min-height:18px;margin-top:4px;}
+.mhint.ok  {color:var(–acc);}
+.mhint.err {color:var(–red);}
+.mhint.warn{color:var(–ora);}
 .cinput-wrap{display:flex;gap:8px;margin-bottom:12px;}
 .cinput{
-  flex:1;background:var(--bg);border:1px solid var(--brd);
-  color:var(--txt);font-family:'Bebas Neue',sans-serif;
-  font-size:32px;letter-spacing:6px;text-align:center;
-  padding:8px;outline:none;transition:border-color .15s;text-transform:uppercase;
+flex:1;background:var(–bg);border:1px solid var(–brd);
+color:var(–txt);font-family:‘Bebas Neue’,sans-serif;
+font-size:32px;letter-spacing:6px;text-align:center;
+padding:8px;outline:none;transition:border-color .15s;text-transform:uppercase;
 }
-.cinput:focus{border-color:var(--acc);}
-.cinput::placeholder{color:var(--mut);font-size:20px;}
-.xbtn{position:absolute;top:12px;right:14px;font-size:18px;border:none;padding:4px 8px;color:var(--mut);background:transparent;cursor:pointer;}
-.xbtn:hover{color:var(--txt);}
+.cinput:focus{border-color:var(–acc);}
+.cinput::placeholder{color:var(–mut);font-size:20px;}
+.xbtn{position:absolute;top:12px;right:14px;font-size:18px;border:none;padding:4px 8px;color:var(–mut);background:transparent;cursor:pointer;}
+.xbtn:hover{color:var(–txt);}
+
 body.vmode .honly{display:none !important;}
-#startOverlay{
-  position:fixed;inset:0;background:var(--bg);z-index:999;
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
+#noser{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px);padding:16px;}
+#noser.show{display:flex;}
+.wbox{border:1px solid var(–red);padding:28px 32px;max-width:440px;text-align:center;}
+.wbox h2{color:var(–red);font-family:‘Bebas Neue’;font-size:28px;letter-spacing:3px;margin-bottom:12px;}
+.wbox p {color:#888;font-size:13px;line-height:1.8;}
+
+/* 앱 시작화면 오버레이 (오디오 & 전체화면 권한 획득용) */
+#startOverlay {
+position:fixed;inset:0;background:var(–bg);z-index:999;
+display:flex;align-items:center;justify-content:center;flex-direction:column;
 }
-#startOverlay h1{font-family:'Bebas Neue';font-size:64px;color:var(--acc);margin-bottom:10px;letter-spacing:6px;text-shadow:0 0 30px var(--glow);}
-#startOverlay p{color:var(--mut);margin-bottom:30px;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
-.btn-start{
-  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;
-  letter-spacing:2px;padding:16px 40px;border:2px solid var(--acc);
-  background:rgba(200,255,0,0.1);color:var(--acc);cursor:pointer;
-  transition:all .2s;text-transform:uppercase;border-radius:4px;
+#startOverlay h1 { font-family:‘Bebas Neue’;font-size:64px;color:var(–acc);margin-bottom:10px;letter-spacing:6px;text-shadow:0 0 30px var(–glow); }
+#startOverlay p { color:var(–mut);margin-bottom:30px;font-size:12px;letter-spacing:1px;text-transform:uppercase; }
+.btn-start {
+font-family:‘JetBrains Mono’,monospace;font-size:18px;font-weight:700;
+letter-spacing:2px;padding:16px 40px;border:2px solid var(–acc);
+background:rgba(200,255,0,0.1);color:var(–acc);cursor:pointer;
+transition:all .2s;text-transform:uppercase;border-radius:4px;
 }
-.btn-start:hover{background:var(--acc);color:#000;box-shadow:0 0 20px rgba(200,255,0,.4);}
+.btn-start:hover { background:var(–acc);color:#000;box-shadow:0 0 20px rgba(200,255,0,.4); }
 </style>
+
 </head>
 <body>
 
@@ -203,12 +232,14 @@ body.vmode .honly{display:none !important;}
     <button class="tog sel" id="tDef"  onclick="setMode(1)">Default</button>
     <button class="tog"     id="tLung" onclick="setMode(2)">Lunge</button>
   </div>
+
   <div class="mir-row">
     <div class="sep"></div>
     <div class="dot" id="mDot"></div>
     <button id="mirBtn" onclick="openMirror()">Mirror</button>
     <div class="vbadge" id="vbadge">Viewer</div>
   </div>
+
   <div class="ctrl-row">
     <div class="sep"></div>
     <button onclick="location.reload()" style="border-color:var(--mut);color:var(--mut)">Reset</button>
@@ -269,81 +300,137 @@ body.vmode .honly{display:none !important;}
   </div>
 </div>
 
+<div id="noser">
+  <div class="wbox">
+    <h2>Browser Not Supported</h2>
+    <p>Web Serial API가 필요합니다.<br>
+    <strong>Chrome</strong> 또는 <strong>Edge</strong>로 열어주세요.<br><br>
+    Viewer 모드는 모든 브라우저에서 사용 가능합니다.</p>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════
-//  MQTT 설정
-// ════════════════════════════════
-const MQTT_BROKER    = 'wss://broker.hivemq.com:8884/mqtt';
-const SENSOR_TOPIC   = 'veltrain/sensor/data';
-const MIRROR_PREFIX  = 'vt2025/';
-
-// ════════════════════════════════
-//  CONFIG
-// ════════════════════════════════
-const CFG = {
-  MIN_LIFT:6.0, MIN_PEAK_VEL:0.10, MIN_REP_TIME:0.10,
-  PEAK_HW:2, DESC_N:3, VEL_MAX:1.5,
-};
-
-// ════════════════════════════════
-//  APP START & EXIT
+//  APP START & EXIT (전체화면 + 오디오)
 // ════════════════════════════════
 function startApp() {
   unlockAudio();
   const elem = document.documentElement;
   try {
-    if (elem.requestFullscreen) elem.requestFullscreen().catch(()=>{});
-    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen().catch(()=>{});
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(e => console.log('Fullscreen blocked', e));
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen().catch(e => console.log('Fullscreen blocked', e));
+    }
   } catch(e) {}
   document.getElementById('startOverlay').style.display = 'none';
-  setTimeout(doConn, 500);
 }
+
 function exitApp() {
   try {
-    if (document.fullscreenElement||document.webkitFullscreenElement) {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
       if (document.exitFullscreen) document.exitFullscreen();
       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
   } catch(e) {}
   try { window.close(); } catch(e) {}
-  setTimeout(()=>{ document.getElementById('startOverlay').style.display='flex'; }, 300);
+  setTimeout(() => {
+    document.getElementById('startOverlay').style.display = 'flex';
+  }, 300);
 }
 
 // ════════════════════════════════
-//  AUDIO
+//  CONFIG
 // ════════════════════════════════
-let audioUnlocked=false, actx=null;
+const CFG = {
+  BAUDRATE:115200, FACTOR:30/7860,
+  OVERFLOW_THR:40000, OVERFLOW_WRAP:65536,
+  MIN_LIFT:6.0, MIN_PEAK_VEL:0.10, MIN_REP_TIME:0.10,
+  PEAK_HW:2, DESC_N:3, VEL_MAX:1.5,
+};
+
+// ════════════════════════════════
+//  AUDIO UNLOCK
+// ════════════════════════════════
+let audioUnlocked = false;
+let actx = null;
 const globalTtsAudio = new Audio();
 
 function unlockAudio() {
-  if (audioUnlocked) return; audioUnlocked=true;
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+
   try {
-    actx=new (window.AudioContext||window.webkitAudioContext)();
-    if (actx.state==='suspended') actx.resume();
-    const buf=actx.createBuffer(1,1,22050),src=actx.createBufferSource();
-    src.buffer=buf;src.connect(actx.destination);src.start(0);
-  } catch(e) {}
-  globalTtsAudio.src='data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaFBsdXMgMi4wLjAuMTEgV2luZG93cwBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
-  globalTtsAudio.play().catch(()=>{});
-  try{const s=new SpeechSynthesisUtterance(' ');s.volume=0;s.rate=2;speechSynthesis.speak(s);}catch(e){}
-}
-const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)||(navigator.maxTouchPoints&&navigator.maxTouchPoints>1);
-if(isMobile)setInterval(()=>{if(!speechSynthesis.speaking&&audioUnlocked){speechSynthesis.pause();speechSynthesis.resume();}},10000);
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const buf = actx.createBuffer(1, 1, 22050);
+    const src = actx.createBufferSource();
+    src.buffer = buf; src.connect(actx.destination); src.start(0);
+  } catch(e) { console.warn('AudioContext unlock:', e); }
 
-let _wsVoice=null;
-function _loadVoice(){
-  const vs=speechSynthesis.getVoices();
-  _wsVoice=vs.find(v=>v.name==='Google US English')||vs.find(v=>/google/i.test(v.name)&&v.lang==='en-US')||vs.find(v=>!v.localService&&v.lang==='en-US')||vs.find(v=>v.lang==='en-US')||vs.find(v=>v.lang.startsWith('en'))||null;
-}
-speechSynthesis.addEventListener('voiceschanged',_loadVoice);_loadVoice();
+  globalTtsAudio.src = 'data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaFBsdXMgMi4wLjAuMTEgV2luZG93cwBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+  globalTtsAudio.play().catch(() => {});
 
-function speak(val){
-  if(!audioUnlocked)return;
-  const text=val.toFixed(2);
-  const url='https://translate.googleapis.com/translate_tts?ie=UTF-8&q='+encodeURIComponent(text)+'&tl=en&total=1&idx=0&textlen='+text.length+'&client=tw-ob&prev=input&ttsspeed=1';
-  globalTtsAudio.pause();globalTtsAudio.src=url;
-  globalTtsAudio.play().catch(()=>{
-    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);if(_wsVoice)u.voice=_wsVoice;u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u);}catch(e){}
+  try {
+    const silent = new SpeechSynthesisUtterance(' ');
+    silent.volume = 0; silent.rate = 2;
+    speechSynthesis.speak(silent);
+  } catch(e) { console.warn('TTS unlock:', e); }
+
+  console.log('[Audio] Unlocked');
+}
+
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || 
+                 (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+if (isMobile) {
+  setInterval(() => {
+    if (!speechSynthesis.speaking && audioUnlocked) {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    }
+  }, 10000);
+}
+
+// ════════════════════════════════
+//  TTS — Google Translate 음성
+// ════════════════════════════════
+let _wsVoice = null;
+function _loadVoice() {
+  const vs = speechSynthesis.getVoices();
+  _wsVoice =
+    vs.find(v => v.name === 'Google US English') ||
+    vs.find(v => /google/i.test(v.name) && v.lang === 'en-US') ||
+    vs.find(v => !v.localService && v.lang === 'en-US') ||
+    vs.find(v => v.lang === 'en-US') ||
+    vs.find(v => v.lang.startsWith('en')) || null;
+}
+speechSynthesis.addEventListener('voiceschanged', _loadVoice);
+_loadVoice();
+
+function speak(val) {
+  if (!audioUnlocked) return;
+  const text = val.toFixed(2);
+
+  const url = 'https://translate.googleapis.com/translate_tts' +
+    '?ie=UTF-8' +
+    '&q='       + encodeURIComponent(text) +
+    '&tl=en' + 
+    '&total=1&idx=0' +
+    '&textlen=' + text.length +
+    '&client=tw-ob' +
+    '&prev=input' +
+    '&ttsspeed=1';
+
+  globalTtsAudio.pause();
+  globalTtsAudio.src = url;
+  globalTtsAudio.play().catch(() => {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (_wsVoice) u.voice = _wsVoice;
+      u.lang = 'en-US'; u.rate = 0.85;
+      speechSynthesis.speak(u);
+    } catch(e) { console.warn('TTS fallback:', e); }
   });
 }
 
@@ -351,165 +438,293 @@ function speak(val){
 //  STATE
 // ════════════════════════════════
 let showMode=1, liftMode=1;
-let connected=false;
-let repCnt=0, lastPeak=null, lenOld=0;
+let port=null, reader=null, connected=false, running=false;
+let repCnt=0, lastPeak=null;
+let lenInit=null, lenOld=0;
 const lenBuf=[];
 let repV=[0], repL=[0];
 let inLift=false, savT=0, descN=0, candLen=null, initSw=true, isMaxL=false;
 
 // ════════════════════════════════
+//  SENSOR PARSER
+// ════════════════════════════════
+function parseRaw(raw) {
+  try {
+    let v = parseInt(raw.slice(4), 10);
+    if (isNaN(v)) return null;
+    if (v > CFG.OVERFLOW_THR) v -= CFG.OVERFLOW_WRAP;
+    const cm = v * CFG.FACTOR;
+    if (lenInit === null) { lenInit = cm; return 0; }
+    return cm - lenInit;
+  } catch { return null; }
+}
+
+// ════════════════════════════════
 //  REP TRACKER
 // ════════════════════════════════
-function repReset(){repV=[0];repL=[0];}
-function repAdd(v,l){repV.push(v);repL.push(l);}
-function repPeak(){
-  const mv=repV.indexOf(Math.max.apply(null,repV));
-  const lo=Math.max(0,mv-CFG.PEAK_HW),hi=Math.min(repV.length,mv+CFG.PEAK_HW+1);
-  const w=repV.slice(lo,hi);return w.reduce((a,b)=>a+b,0)/w.length;
+function repReset()   { repV = [0]; repL = [0]; }
+function repAdd(v, l) { repV.push(v); repL.push(l); }
+function repPeak() {
+  const mv = repV.indexOf(Math.max.apply(null, repV));
+  const lo = Math.max(0, mv - CFG.PEAK_HW);
+  const hi = Math.min(repV.length, mv + CFG.PEAK_HW + 1);
+  const w  = repV.slice(lo, hi);
+  return w.reduce((a, b) => a + b, 0) / w.length;
 }
-function repMean(){
-  const ml=repL.indexOf(Math.max.apply(null,repL));
-  const s=repV.slice(0,ml);return s.length?s.reduce((a,b)=>a+b,0)/s.length:0;
+function repMean() {
+  const ml = repL.indexOf(Math.max.apply(null, repL));
+  const s  = repV.slice(0, ml);
+  return s.length ? s.reduce((a, b) => a + b, 0) / s.length : 0;
 }
-function repMaxL(){return Math.max.apply(null,repL);}
+function repMaxL() { return Math.max.apply(null, repL); }
 
-function beep(){
-  try{
-    if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();
-    if(actx.state==='suspended')actx.resume();
-    const o=actx.createOscillator(),g=actx.createGain();
-    o.connect(g);g.connect(actx.destination);o.type='sine';o.frequency.value=880;
-    g.gain.setValueAtTime(0.35,actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.28);
-    o.start(actx.currentTime);o.stop(actx.currentTime+0.28);
-  }catch(e){}
-}
-
-function col(vel){
-  if(vel<=0)return'#2244ff';if(vel>=CFG.VEL_MAX)return'#ff2222';
-  const r=vel/CFG.VEL_MAX;
-  const segs=[[0,.25,[34,68,255],[0,220,0]],[.25,.5,[0,220,0],[255,230,0]],[.5,.75,[255,230,0],[255,120,0]],[.75,1,[255,120,0],[255,34,34]]];
-  for(const[lo,hi,c0,c1]of segs){if(r>=lo&&r<=hi){const t=(r-lo)/(hi-lo);const c=c0.map((v,i)=>Math.round(v+(c1[i]-v)*t));return`rgb(${c[0]},${c[1]},${c[2]})`;}}
-  return'#ff2222';
+// ════════════════════════════════
+//  AUDIO — BEEP
+// ════════════════════════════════
+function beep() {
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.35, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.28);
+    o.start(actx.currentTime); o.stop(actx.currentTime + 0.28);
+  } catch(e) { console.warn('beep:', e); }
 }
 
 // ════════════════════════════════
-//  CHART
+//  COLOR
 // ════════════════════════════════
-const repHist=[],MAX_BARS=20;
-function addBar(vel){
-  repHist.push({vel,color:col(vel)});if(repHist.length>MAX_BARS)repHist.shift();
-  document.getElementById('chartEmpty').style.display='none';
-  try{drawChart();}catch(e){}
-}
-function drawChart(){
-  const wrap=document.getElementById('chartWrap'),canvas=document.getElementById('repChart');
-  if(!canvas||!wrap)return;
-  const dpr=window.devicePixelRatio||1,W=wrap.clientWidth,H=wrap.clientHeight;
-  if(W===0||H===0)return;
-  if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){
-    canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
-    canvas.style.width=W+'px';canvas.style.height=H+'px';
+function col(vel) {
+  if (vel <= 0) return '#2244ff';
+  if (vel >= CFG.VEL_MAX) return '#ff2222';
+  const r = vel / CFG.VEL_MAX;
+  const segs = [
+    [0, .25, [34,68,255], [0,220,0]],
+    [.25,.5,  [0,220,0],  [255,230,0]],
+    [.5, .75, [255,230,0],[255,120,0]],
+    [.75,1,   [255,120,0],[255,34,34]],
+  ];
+  for (const [lo, hi, c0, c1] of segs) {
+    if (r >= lo && r <= hi) {
+      const t = (r - lo) / (hi - lo);
+      const c = c0.map((v, i) => Math.round(v + (c1[i] - v) * t));
+      return `rgb(${c[0]},${c[1]},${c[2]})`;
+    }
   }
-  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
-  if(!repHist.length)return;
-  const n=repHist.length,padT=24,padB=16,padL=10,padR=10;
-  const cW=W-padL-padR,cH=H-padT-padB;
-  const maxV=Math.max.apply(null,repHist.map(r=>r.vel).concat([0.5]));
-  const step=cW/(MAX_BARS-1),ptX=i=>padL+i*step,ptY=v=>padT+cH*(1-v/maxV);
-  ctx.font='9px monospace';ctx.textAlign='left';
-  [0.5,1.0,1.5].forEach(v=>{
-    if(v>maxV+0.05)return;const y=ptY(v);
-    ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
-    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,255,255,0.22)';ctx.fillText(v.toFixed(1),padL+2,y-3);
+  return '#ff2222';
+}
+
+// ════════════════════════════════
+//  LINE CHART
+// ════════════════════════════════
+const repHist = [];
+const MAX_BARS = 20;
+
+function addBar(vel) {
+  repHist.push({ vel, color: col(vel) });
+  if (repHist.length > MAX_BARS) repHist.shift();
+  document.getElementById('chartEmpty').style.display = 'none';
+  try { drawChart(); } catch(e) { console.warn('chart:', e); }
+}
+
+function drawChart() {
+  const wrap   = document.getElementById('chartWrap');
+  const canvas = document.getElementById('repChart');
+  if (!canvas || !wrap) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const W   = wrap.clientWidth;
+  const H   = wrap.clientHeight;
+  if (W === 0 || H === 0) return;
+
+  if (canvas.width  !== Math.round(W * dpr) ||
+      canvas.height !== Math.round(H * dpr)) {
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  if (!repHist.length) return;
+
+  const n    = repHist.length;
+  const padT = 24, padB = 16, padL = 10, padR = 10;
+  const cW   = W - padL - padR;
+  const cH   = H - padT - padB;
+  const maxV = Math.max.apply(null, repHist.map(r => r.vel).concat([0.5]));
+
+  const step = cW / (MAX_BARS - 1);
+  const ptX  = (i) => padL + i * step;
+  const ptY  = (v) => padT + cH * (1 - v / maxV);
+
+  ctx.font      = '9px monospace';
+  ctx.textAlign = 'left';
+  [0.5, 1.0, 1.5].forEach(v => {
+    if (v > maxV + 0.05) return;
+    const y = ptY(v);
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.fillText(v.toFixed(1), padL + 2, y - 3);
   });
-  if(n>=2){
-    const grd=ctx.createLinearGradient(0,padT,0,padT+cH);
-    grd.addColorStop(0,'rgba(200,255,0,0.18)');grd.addColorStop(1,'rgba(200,255,0,0.01)');
-    ctx.fillStyle=grd;ctx.beginPath();ctx.moveTo(ptX(0),ptY(repHist[0].vel));
-    for(let i=1;i<n;i++)ctx.lineTo(ptX(i),ptY(repHist[i].vel));
-    ctx.lineTo(ptX(n-1),padT+cH);ctx.lineTo(ptX(0),padT+cH);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='rgba(200,255,0,0.7)';ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();
-    for(let i=0;i<n;i++){const x=ptX(i),y=ptY(repHist[i].vel);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+
+  if (n >= 2) {
+    const grd = ctx.createLinearGradient(0, padT, 0, padT + cH);
+    grd.addColorStop(0,   'rgba(200,255,0,0.18)');
+    grd.addColorStop(1,   'rgba(200,255,0,0.01)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.moveTo(ptX(0), ptY(repHist[0].vel));
+    for (let i = 1; i < n; i++) ctx.lineTo(ptX(i), ptY(repHist[i].vel));
+    ctx.lineTo(ptX(n - 1), padT + cH);
+    ctx.lineTo(ptX(0),     padT + cH);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (n >= 2) {
+    ctx.strokeStyle = 'rgba(200,255,0,0.7)';
+    ctx.lineWidth   = 2;
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = ptX(i), y = ptY(repHist[i].vel);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
     ctx.stroke();
   }
-  repHist.forEach((rep,i)=>{
-    const x=ptX(i),y=ptY(rep.vel),last=(i===n-1);
-    ctx.beginPath();ctx.arc(x,y,last?5:3.5,0,Math.PI*2);
-    ctx.fillStyle=last?rep.color:'rgba(255,255,255,0.75)';ctx.fill();
-    if(last){ctx.strokeStyle=rep.color;ctx.lineWidth=1.5;ctx.stroke();}
-    ctx.fillStyle=last?'#ffffff':'rgba(220,220,220,0.8)';
-    ctx.font=`bold ${last?11:9}px monospace`;ctx.textAlign='center';
-    ctx.fillText(rep.vel.toFixed(2),x,y-9);
-    ctx.fillStyle='rgba(255,255,255,0.28)';ctx.font='8px monospace';
-    ctx.fillText(i+1,x,H-padB+12);
+
+  repHist.forEach((rep, i) => {
+    const x  = ptX(i);
+    const y  = ptY(rep.vel);
+    const last = (i === n - 1);
+
+    ctx.beginPath();
+    ctx.arc(x, y, last ? 5 : 3.5, 0, Math.PI * 2);
+    ctx.fillStyle   = last ? rep.color : 'rgba(255,255,255,0.75)';
+    ctx.fill();
+    if (last) {
+      ctx.strokeStyle = rep.color;
+      ctx.lineWidth   = 1.5;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle  = last ? '#ffffff' : 'rgba(220,220,220,0.8)';
+    ctx.font       = `bold ${last ? 11 : 9}px monospace`;
+    ctx.textAlign  = 'center';
+    ctx.fillText(rep.vel.toFixed(2), x, y - 9);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.font      = '8px monospace';
+    ctx.fillText(i + 1, x, H - padB + 12);
   });
 }
-window.addEventListener('resize',()=>{try{if(repHist.length)drawChart();}catch(e){}});
+
+window.addEventListener('resize', () => {
+  try { if (repHist.length) drawChart(); } catch(e) {}
+});
 
 // ════════════════════════════════
 //  GUI
 // ════════════════════════════════
-function updCurr(vel){const e=document.getElementById('currNum');e.textContent=vel.toFixed(2);e.style.color=col(vel);}
-function showPeak(val){const e=document.getElementById('peakNum');e.textContent=val.toFixed(2);e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');}
-function updStatus(len){
-  if(len!==null)document.getElementById('sHeight').textContent=len.toFixed(2)+' cm';
-  document.getElementById('sLift').textContent=inLift?(candLen!==null?'Descending':'Lifting'):'—';
-  document.getElementById('sStat').textContent=candLen!==null?'Confirming':inLift?'In Lift':connected?'Waiting':'Idle';
+function updCurr(vel) {
+  const e = document.getElementById('currNum');
+  e.textContent = vel.toFixed(2);
+  e.style.color = col(vel);
 }
-function setCand(len){
-  const b=document.getElementById('candBar');
-  if(len!==null){b.textContent=`▼ candidate  ${len.toFixed(1)} cm`;b.classList.add('on');}
+function showPeak(val) {
+  const e = document.getElementById('peakNum');
+  e.textContent = val.toFixed(2);
+  e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash');
+}
+function updStatus(len) {
+  if (len !== null) document.getElementById('sHeight').textContent = len.toFixed(2) + ' cm';
+  document.getElementById('sLift').textContent =
+    inLift ? (candLen !== null ? 'Descending' : 'Lifting') : '—';
+  document.getElementById('sStat').textContent =
+    candLen !== null ? 'Confirming' : inLift ? 'In Lift' : connected ? 'Waiting' : 'Idle';
+}
+function setCand(len) {
+  const b = document.getElementById('candBar');
+  if (len !== null) { b.textContent = `▼ candidate  ${len.toFixed(1)} cm`; b.classList.add('on'); }
   else b.classList.remove('on');
 }
 
 // ════════════════════════════════
 //  EMIT PEAK
 // ════════════════════════════════
-function emitPeak(now){
-  const val=showMode===1?repPeak():repMean();
-  if(val<CFG.MIN_PEAK_VEL){repReset();savT=now;return;}
-  lastPeak=val;showPeak(val);beep();speak(val);addBar(val);
-  repReset();savT=now;repCnt++;
-  document.getElementById('sRep').textContent=repCnt;
-  mirSend({type:'peak',val,repCnt});
+function emitPeak(now) {
+  const val = showMode === 1 ? repPeak() : repMean();
+  if (val < CFG.MIN_PEAK_VEL) { repReset(); savT = now; return; }
+  lastPeak = val;
+  showPeak(val);
+  beep();
+  speak(val);
+  addBar(val);
+  repReset(); savT = now;
+  repCnt++;
+  document.getElementById('sRep').textContent = repCnt;
+  mirSend({ type:'peak', val, repCnt });
 }
 
 // ════════════════════════════════
-//  MODE 1 & 2
+//  MODE 1  ← 반동 버그 수정
 // ════════════════════════════════
-function mode1(vel,vs,len,now){
-  if(len>CFG.MIN_LIFT){
-    if(!inLift){inLift=true;savT=now;descN=0;candLen=null;repReset();}
-    else{
-      repAdd(vel,len);
-      if(vs<0){descN++;}else{if(candLen!==null)candLen=null;descN=0;}
-      if(descN>=CFG.DESC_N){candLen=repMaxL();descN=0;}
-      if(candLen!==null&&len<=candLen/2){
-        if(now-savT>=CFG.MIN_REP_TIME)emitPeak(now);
-        inLift=false;descN=0;candLen=null;
+// 핵심 원칙:
+//   candLen 확정 전  → 속도 데이터 수집 + descN 카운트
+//   candLen 확정 후  → 데이터 수집 완전 중단, 높이 임계값만 감시
+//   → 바닥 반동(vs > 0)이 와도 candLen·repV 에 영향 없음
+function mode1(vel, vs, len, now) {
+  if (len > CFG.MIN_LIFT) {
+    if (!inLift) {
+      inLift = true; savT = now; descN = 0; candLen = null; repReset();
+    } else {
+      if (candLen === null) {
+        // ── 하강 확정 전: 속도 수집 + 하강 카운터 관리 ──
+        repAdd(vel, len);
+        if (vs < 0) { descN++; } else { descN = 0; }
+        if (descN >= CFG.DESC_N) { candLen = repMaxL(); descN = 0; }
+      }
+      // ── candLen 확정 후: 반동 포함 어떤 움직임도 무시, 높이만 감시 ──
+      if (candLen !== null && len <= candLen / 2) {
+        if (now - savT >= CFG.MIN_REP_TIME) emitPeak(now);
+        inLift = false; descN = 0; candLen = null;
       }
     }
-  }else{
-    if(inLift){
-      if(now-savT>=CFG.MIN_REP_TIME)emitPeak(now);
-      inLift=false;descN=0;candLen=null;initSw=true;
+  } else {
+    if (inLift) {
+      if (now - savT >= CFG.MIN_REP_TIME) emitPeak(now);
+      inLift = false; descN = 0; candLen = null; initSw = true;
     }
   }
-  setCand(candLen);updStatus(len);
+  setCand(candLen); updStatus(len);
 }
-function mode2(vel,len,now){
-  if(len>CFG.MIN_LIFT&&initSw&&!inLift){inLift=true;initSw=false;savT=now;repReset();updStatus(len);return;}
-  if(inLift){
-    repAdd(vel,len);
-    if(now-savT>CFG.MIN_REP_TIME&&isMaxL){
-      const p=repPeak();
-      if(p>=CFG.MIN_PEAK_VEL){
-        lastPeak=p;showPeak(p);beep();speak(p);addBar(p);
-        repReset();savT=now;repCnt++;
-        document.getElementById('sRep').textContent=repCnt;
-        mirSend({type:'peak',val:p,repCnt});
+
+// ════════════════════════════════
+//  MODE 2
+// ════════════════════════════════
+function mode2(vel, len, now) {
+  if (len > CFG.MIN_LIFT && initSw && !inLift) {
+    inLift = true; initSw = false; savT = now; repReset(); updStatus(len); return;
+  }
+  if (inLift) {
+    repAdd(vel, len);
+    if (now - savT > CFG.MIN_REP_TIME && isMaxL) {
+      const p = repPeak();
+      if (p >= CFG.MIN_PEAK_VEL) {
+        lastPeak = p; showPeak(p); beep(); speak(p); addBar(p);
+        repReset(); savT = now;
+        repCnt++; document.getElementById('sRep').textContent = repCnt;
+        mirSend({ type:'peak', val:p, repCnt });
       }
     }
   }
@@ -519,141 +734,221 @@ function mode2(vel,len,now){
 // ════════════════════════════════
 //  DATA PROCESSOR
 // ════════════════════════════════
-function processLine(raw){
-  if(!raw.startsWith('V:'))return;
-  const parts=raw.slice(2).split(',');
-  if(parts.length<2)return;
-  const vs=parseFloat(parts[0]);
-  const len=parseFloat(parts[1]);
-  if(isNaN(vs)||isNaN(len))return;
-  const vel=Math.max(vs,0);
+function processLine(raw) {
+  const len = parseRaw(raw);
+  if (len === null) return;
+  const vs  = (len - lenOld) * 0.01 / 0.05;
+  const vel = Math.max(vs, 0);
 
-  if(lenBuf.length>=2)
-    isMaxL=(len-lenBuf[lenBuf.length-1])<0&&
-           (lenBuf[lenBuf.length-1]-lenBuf[lenBuf.length-2])>0&&
-           len>CFG.MIN_LIFT;
-  else isMaxL=false;
-  lenBuf.push(len);if(lenBuf.length>200)lenBuf.shift();
+  if (lenBuf.length >= 2)
+    isMaxL = (len - lenBuf[lenBuf.length-1]) < 0 &&
+             (lenBuf[lenBuf.length-1] - lenBuf[lenBuf.length-2]) > 0 &&
+             len > CFG.MIN_LIFT;
+  else isMaxL = false;
+  lenBuf.push(len);
+  if (lenBuf.length > 200) lenBuf.shift();
 
   updCurr(vel);
-  const now=performance.now()/1000;
-  if(liftMode===1)mode1(vel,vs,len,now);
-  else            mode2(vel,len,now);
-  lenOld=len;
+  const now = performance.now() / 1000;
+  if (liftMode === 1) mode1(vel, vs, len, now);
+  else                mode2(vel, len, now);
+  lenOld = len;
 
-  mirSend({type:'sample',vel,len,
-    status:document.getElementById('sStat').textContent,
-    lift:document.getElementById('sLift').textContent,
-    peak:lastPeak,repCnt});
+  mirSend({ type:'sample', vel, len,
+    status: document.getElementById('sStat').textContent,
+    lift:   document.getElementById('sLift').textContent,
+    peak:   lastPeak, repCnt });
 }
 
 // ════════════════════════════════
-//  ★ 센서 MQTT 연결
+//  WEB SERIAL
 // ════════════════════════════════
-let sensorMqtt=null;
+async function toggleConn() { if (connected) await doDisc(); else await doConn(); }
 
-function toggleConn(){if(connected)doDisc();else doConn();}
-
-function doConn(){
-  setConnUI(false,false,'connecting');
-  const clientId='vt-sensor-'+Math.random().toString(36).slice(2,10);
-  sensorMqtt=mqtt.connect(MQTT_BROKER,{clientId,keepalive:30,reconnectPeriod:3000,connectTimeout:10000,clean:true});
-
-  sensorMqtt.on('connect',()=>{
-    sensorMqtt.subscribe(SENSOR_TOPIC,{qos:0},(err)=>{
-      if(err){setConnUI(false,true);return;}
-      connected=true;
-      lenOld=0;lenBuf.length=0;
-      inLift=false;descN=0;candLen=null;repReset();
-      setConnUI(true);
-    });
-  });
-
-  sensorMqtt.on('message',(topic,msg)=>{
-    try{processLine(msg.toString().trim());}catch(e){}
-  });
-
-  sensorMqtt.on('error',()=>{setConnUI(false,true);});
-  sensorMqtt.on('close',()=>{connected=false;setConnUI(false);});
+async function openPort(p) {
+  port = p;
+  await port.open({ baudRate: CFG.BAUDRATE });
+  connected = true; running = true;
+  lenInit = null; lenOld = 0; lenBuf.length = 0;
+  inLift = false; descN = 0; candLen = null; repReset();
+  setConnUI(true); readLoop();
 }
 
-function doDisc(){
-  if(sensorMqtt){try{sensorMqtt.end(true);}catch(e){}sensorMqtt=null;}
-  connected=false;setConnUI(false);
-}
-
-// ════════════════════════════════
-//  MIRROR MQTT (별도 클라이언트)
-// ════════════════════════════════
-let mirrorMqtt=null, mqttTopic=null, isViewer=false;
-
-function mqttDisconnect(){
-  if(mirrorMqtt){try{mirrorMqtt.end(true);}catch{}mirrorMqtt=null;}
-  mqttTopic=null;
-}
-
-function mirSend(data){
-  if(!mirrorMqtt||!mirrorMqtt.connected||!mqttTopic||isViewer)return;
-  try{mirrorMqtt.publish(mqttTopic,JSON.stringify(data),{qos:0,retain:false});}catch(e){}
-}
-
-function applyMirror(d){
-  try{
-    if(d.type==='sample'){
-      updCurr(d.vel);
-      if(d.len!=null)document.getElementById('sHeight').textContent=d.len.toFixed(2)+' cm';
-      if(d.status)document.getElementById('sStat').textContent=d.status;
-      if(d.lift)document.getElementById('sLift').textContent=d.lift;
-      document.getElementById('sRep').textContent=d.repCnt||0;
-      if(d.peak!=null)document.getElementById('peakNum').textContent=d.peak.toFixed(2);
-    }else if(d.type==='peak'){
-      showPeak(d.val);beep();speak(d.val);addBar(d.val);
-      document.getElementById('sRep').textContent=d.repCnt||0;
+async function doConn() {
+  if (!('serial' in navigator)) { document.getElementById('noser').classList.add('show'); return; }
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    audioUnlocked = true;
+  }
+  if (actx.state === 'suspended') actx.resume();
+  try {
+    const prev = await navigator.serial.getPorts();
+    if (prev.length === 1) {
+      await openPort(prev[0]);
+    } else if (prev.length > 1) {
+      const usb = prev.find(p => p.getInfo().usbVendorId !== undefined);
+      await openPort(usb || prev[0]);
+    } else {
+      const chosen = await navigator.serial.requestPort();
+      await openPort(chosen);
     }
-  }catch(e){}
+  } catch(e) {
+    if (e.name !== 'NotFoundError') { console.error(e); setConnUI(false, true); }
+  }
 }
 
-function startHost(){
-  mqttDisconnect();isViewer=false;
-  const code=String(Math.floor(1000+Math.random()*9000));
-  mqttTopic=MIRROR_PREFIX+code;
-  document.getElementById('hostCode').textContent='…';
-  hHint('브로커 연결 중...','');
-  const clientId='vt-host-'+Math.random().toString(36).slice(2,10);
-  mirrorMqtt=mqtt.connect(MQTT_BROKER,{clientId,keepalive:30,reconnectPeriod:3000,connectTimeout:10000,clean:true});
-  mirrorMqtt.on('connect',()=>{
-    document.getElementById('hostCode').textContent=code;
-    hHint('폰에서 이 코드를 입력하세요','ok');
-    document.getElementById('mDot').className='dot mir';
-    document.getElementById('mirBtn').className='mir-on';
+window.addEventListener('load', async () => {
+  if (!('serial' in navigator)) return;
+  try {
+    const prev = await navigator.serial.getPorts();
+    if (prev.length > 0) {
+      const btn = document.getElementById('conBtn');
+      btn.textContent = 'Auto-Connect';
+      btn.style.borderColor = 'var(--acc)';
+      btn.style.color = 'var(--acc)';
+    }
+  } catch(e) {}
+});
+async function doDisc() {
+  running = false;
+  try { if (reader) { await reader.cancel(); reader = null; } } catch{}
+  try { if (port)   { await port.close();    port = null;   } } catch{}
+  connected = false; setConnUI(false);
+}
+async function readLoop() {
+  const dec = new TextDecoderStream();
+  port.readable.pipeTo(dec.writable);
+  reader = dec.readable.getReader();
+  let buf = '';
+  try {
+    while (running) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      const ls = buf.split('\n'); buf = ls.pop();
+      for (const l of ls) {
+        const t = l.trim();
+        if (t) {
+          try { processLine(t); } catch(e) { console.error('processLine:', e); }
+        }
+      }
+    }
+  } catch(e) { if (running) console.error('readLoop:', e); }
+  finally { reader = null; connected = false; setConnUI(false); }
+}
+
+// ════════════════════════════════
+//  MIRROR — MQTT 방식
+// ════════════════════════════════
+const MQTT_BROKER = 'wss://broker.hivemq.com:8884/mqtt';
+const TOPIC_PREFIX = 'vt2025/';
+
+let mqttClient = null;
+let mqttTopic  = null;
+let isViewer   = false;
+
+function genCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function mqttDisconnect() {
+  if (mqttClient) { try { mqttClient.end(true); } catch{} mqttClient = null; }
+  mqttTopic = null;
+}
+
+function mirSend(data) {
+  if (!mqttClient || !mqttClient.connected || !mqttTopic || isViewer) return;
+  try {
+    mqttClient.publish(mqttTopic, JSON.stringify(data), { qos:0, retain:false });
+  } catch(e) { console.warn('mirSend:', e); }
+}
+
+function applyMirror(d) {
+  try {
+    if (d.type === 'sample') {
+      updCurr(d.vel);
+      if (d.len !== null && d.len !== undefined)
+        document.getElementById('sHeight').textContent = d.len.toFixed(2) + ' cm';
+      if (d.status) document.getElementById('sStat').textContent = d.status;
+      if (d.lift)   document.getElementById('sLift').textContent = d.lift;
+      document.getElementById('sRep').textContent = d.repCnt || 0;
+      if (d.peak !== null && d.peak !== undefined)
+        document.getElementById('peakNum').textContent = d.peak.toFixed(2);
+    } else if (d.type === 'peak') {
+      showPeak(d.val);
+      beep();
+      speak(d.val);
+      addBar(d.val);
+      document.getElementById('sRep').textContent = d.repCnt || 0;
+    }
+  } catch(e) { console.error('applyMirror:', e); }
+}
+
+function startHost() {
+  mqttDisconnect();
+  isViewer = false;
+  const code = genCode();
+  mqttTopic  = TOPIC_PREFIX + code;
+
+  document.getElementById('hostCode').textContent = '…';
+  hHint('브로커 연결 중...', '');
+
+  const clientId = 'vt-host-' + Math.random().toString(36).slice(2, 10);
+  mqttClient = mqtt.connect(MQTT_BROKER, {
+    clientId, keepalive:30, reconnectPeriod:3000, connectTimeout:10000, clean:true,
   });
-  mirrorMqtt.on('reconnect',()=>hHint('재연결 중...','warn'));
-  mirrorMqtt.on('error',e=>{hHint('브로커 오류: '+e.message,'err');});
-  mirrorMqtt.on('close',()=>{hHint('브로커 연결 끊김','warn');document.getElementById('mDot').className='dot';});
+
+  mqttClient.on('connect', () => {
+    document.getElementById('hostCode').textContent = code;
+    hHint('폰에서 이 코드를 입력하세요', 'ok');
+    document.getElementById('mDot').className = 'dot mir';
+    document.getElementById('mirBtn').className = 'mir-on';
+    console.log('[MQTT] HOST ready. Topic:', mqttTopic);
+  });
+
+  mqttClient.on('reconnect', () => hHint('재연결 중...', 'warn'));
+  mqttClient.on('error',     e  => { hHint('브로커 오류: ' + e.message, 'err'); console.error('[MQTT]', e); });
+  mqttClient.on('close',     ()  => { hHint('브로커 연결 끊김', 'warn'); document.getElementById('mDot').className='dot'; });
 }
 
-function joinViewer(){
-  const code=document.getElementById('codeIn').value.trim();
-  if(code.length!==4||!/^\d{4}$/.test(code)){vHint('4자리 숫자를 입력하세요','err');return;}
-  mqttDisconnect();mqttTopic=MIRROR_PREFIX+code;
-  vHint('브로커 연결 중...','');
-  const clientId='vt-view-'+Math.random().toString(36).slice(2,10);
-  mirrorMqtt=mqtt.connect(MQTT_BROKER,{clientId,keepalive:30,reconnectPeriod:3000,connectTimeout:10000,clean:true});
-  mirrorMqtt.on('connect',()=>{
-    mirrorMqtt.subscribe(mqttTopic,{qos:0},(err)=>{
-      if(err){vHint('구독 실패: '+err.message,'err');return;}
-      isViewer=true;vHint('연결됨 ✓  HOST 신호 대기 중...','ok');
-      document.getElementById('mDot').className='dot mir';
-      document.getElementById('mirBtn').className='mir-on';
+function joinViewer() {
+  const code = document.getElementById('codeIn').value.trim();
+  if (code.length !== 4 || !/^\d{4}$/.test(code)) { vHint('4자리 숫자를 입력하세요', 'err'); return; }
+
+  mqttDisconnect();
+  mqttTopic = TOPIC_PREFIX + code;
+
+  vHint('브로커 연결 중...', '');
+  const clientId = 'vt-view-' + Math.random().toString(36).slice(2, 10);
+  mqttClient = mqtt.connect(MQTT_BROKER, {
+    clientId, keepalive:30, reconnectPeriod:3000, connectTimeout:10000, clean:true,
+  });
+
+  mqttClient.on('connect', () => {
+    mqttClient.subscribe(mqttTopic, { qos:0 }, (err) => {
+      if (err) { vHint('구독 실패: ' + err.message, 'err'); return; }
+      isViewer = true;
+      vHint('연결됨 ✓  HOST 신호 대기 중...', 'ok');
+      document.getElementById('mDot').className = 'dot mir';
+      document.getElementById('mirBtn').className = 'mir-on';
       document.getElementById('vbadge').classList.add('show');
       document.body.classList.add('vmode');
       closeMirror();
+      console.log('[MQTT] VIEWER subscribed to:', mqttTopic);
     });
   });
-  mirrorMqtt.on('message',(topic,msg)=>{try{applyMirror(JSON.parse(msg.toString()));}catch(e){}});
-  mirrorMqtt.on('reconnect',()=>vHint('재연결 중...','warn'));
-  mirrorMqtt.on('error',e=>{vHint('브로커 오류: '+e.message,'err');});
-  mirrorMqtt.on('close',()=>{vHint('연결 끊김','warn');document.getElementById('mDot').className='dot';document.getElementById('mirBtn').className='';});
+
+  mqttClient.on('message', (topic, msg) => {
+    try { applyMirror(JSON.parse(msg.toString())); } catch(e) {}
+  });
+
+  mqttClient.on('reconnect', () => vHint('재연결 중...', 'warn'));
+  mqttClient.on('error',     e  => { vHint('브로커 오류: ' + e.message, 'err'); console.error('[MQTT]', e); });
+  mqttClient.on('close',     ()  => {
+    vHint('연결 끊김', 'warn');
+    document.getElementById('mDot').className = 'dot';
+    document.getElementById('mirBtn').className = '';
+  });
 }
 
 // ════════════════════════════════
@@ -661,37 +956,45 @@ function joinViewer(){
 // ════════════════════════════════
 function hHint(m,t){const e=document.getElementById('hHint');e.textContent=m;e.className='mhint'+(t?' '+t:'');}
 function vHint(m,t){const e=document.getElementById('vHint');e.textContent=m;e.className='mhint'+(t?' '+t:'');}
-function openMirror(){document.getElementById('mirModal').classList.add('show');if(window.innerWidth<=767)switchTab('v');}
-function closeMirror(){document.getElementById('mirModal').classList.remove('show');}
-function switchTab(t){
-  ['h','v'].forEach(x=>{
-    document.getElementById('pan'+x.toUpperCase()).classList.toggle('on',x===t);
-    document.getElementById('tab'+x.toUpperCase()).classList.toggle('sel',x===t);
+function openMirror() {
+  document.getElementById('mirModal').classList.add('show');
+  if (window.innerWidth <= 767) switchTab('v');
+}
+function closeMirror(){ document.getElementById('mirModal').classList.remove('show'); }
+function switchTab(t) {
+  ['h','v'].forEach(x => {
+    document.getElementById('pan' + x.toUpperCase()).classList.toggle('on', x === t);
+    document.getElementById('tab' + x.toUpperCase()).classList.toggle('sel', x === t);
   });
 }
-function setConnUI(on,err=false,state=''){
-  const dot=document.getElementById('dot');
-  if(on)dot.className='dot on';
-  else if(err)dot.className='dot err';
-  else dot.className='dot';
-  const btn=document.getElementById('conBtn');
-  if(state==='connecting'){btn.textContent='Connecting...';btn.className='';}
-  else{btn.textContent=on?'Disconnect':'Connect';btn.className=on?'live':'';}
-  document.getElementById('sStat').textContent=on?'Waiting':state==='connecting'?'Connecting':'Idle';
+function setConnUI(on, err=false) {
+  document.getElementById('dot').className = 'dot' + (on?' on':err?' err':'');
+  document.getElementById('conBtn').textContent = on ? 'Disconnect' : 'Connect';
+  document.getElementById('conBtn').className   = on ? 'live' : '';
+  document.getElementById('sStat').textContent  = on ? 'Waiting' : 'Idle';
   updStatus(null);
 }
-function setShow(v){
-  showMode=v;
-  document.getElementById('tPeak').className='tog'+(v===1?' sel':'');
-  document.getElementById('tMean').className='tog'+(v===2?' sel':'');
-  document.getElementById('peakTag').textContent=v===1?'Peak Velocity':'Mean Velocity';
+function setShow(v) {
+  showMode = v;
+  document.getElementById('tPeak').className   = 'tog' + (v===1?' sel':'');
+  document.getElementById('tMean').className   = 'tog' + (v===2?' sel':'');
+  document.getElementById('peakTag').textContent = v===1 ? 'Peak Velocity' : 'Mean Velocity';
 }
-function setMode(v){
-  liftMode=v;
-  document.getElementById('tDef').className='tog'+(v===1?' sel':'');
-  document.getElementById('tLung').className='tog'+(v===2?' sel':'');
-  ['tPeak','tMean'].forEach(id=>{const e=document.getElementById(id);e.disabled=v===2;e.style.opacity=v===2?'.35':'1';});
+function setMode(v) {
+  liftMode = v;
+  document.getElementById('tDef').className  = 'tog' + (v===1?' sel':'');
+  document.getElementById('tLung').className = 'tog' + (v===2?' sel':'');
+  ['tPeak','tMean'].forEach(id => {
+    const e = document.getElementById(id);
+    e.disabled = v===2; e.style.opacity = v===2 ? '.35' : '1';
+  });
+}
+
+if (!('serial' in navigator)) {
+  document.getElementById('conBtn').disabled = true;
+  document.getElementById('conBtn').title = 'Chrome/Edge 전용';
 }
 </script>
+
 </body>
 </html>
